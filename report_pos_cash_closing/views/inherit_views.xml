@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="pos_daily_sales_reports_wizard_form_sec_template" model="ir.ui.view">
+        <field name="name">pos.daily.sales.reports.wizard.form.sec.template</field>
+        <field name="model">pos.daily.sales.reports.wizard</field>
+        <field name="inherit_id" ref="point_of_sale.view_pos_daily_sales_reports_wizard"/>
+        <field name="arch" type="xml">
+            <xpath expr="//label[@for='pos_session_id']" position="replace">
+            </xpath>
+            
+            <field name="pos_session_id" position="replace">
+                <group>
+                    <field name="pos_session_id" />
+                    <field name="template_to_use" />
+                </group>
+            </field>
+        </field>
+    </record>
+
+   
+
+</odoo>

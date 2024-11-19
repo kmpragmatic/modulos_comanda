@@ -1,0 +1,17 @@
+<odoo>
+    <record id="billon_res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.billon</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="account.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//block[@id='invoicing_settings']/setting[@id='total_amount_words']" position="after">
+                <setting help="Integración con sistema de facturación Billon.">
+                    <field name="billon_integration"/>
+                    <field name="billon_username" invisible="not billon_integration" class="o_field_widget" placeholder="Usuario billon"/><br/>
+                    <field name="billon_password" widget="password" invisible="not billon_integration" class="o_field_widget" placeholder="Contraseña"/><br/>
+                    <field name="billon_service_url" invisible="not billon_integration" class="o_field_widget" placeholder="Ingrese la URL de la API Billon"/>
+                </setting>
+            </xpath>
+        </field>
+    </record>
+</odoo>

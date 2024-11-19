@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="pos_self_order_extended_pos_order" model="ir.ui.view">
+        <field name="name">pos.order.pos_self_order_extended</field>
+        <field name="model">pos.order</field>
+        <field name="inherit_id" ref="point_of_sale.view_pos_pos_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='tracking_number']" position="after">
+                 <field name="pushy_error" readonly="1"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
