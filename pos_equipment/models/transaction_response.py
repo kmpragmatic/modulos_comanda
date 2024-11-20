@@ -37,7 +37,6 @@ class TransactionResponse(models.Model):
             else:
                 record.json_txt = "{}"
 
-
     def _compute_name(self):
         for record in self:
             if isinstance(record.data, str):
@@ -48,21 +47,19 @@ class TransactionResponse(models.Model):
             else:
                 data = record.data or {}
 
-        # Buscar el POS Order por el custom_order_uuid
+            # Buscar el POS Order por el custom_order_uuid
             sale_id = self.env['pos.order'].search([('custom_order_uuid', '=', record.response_uuid)], limit=1)
-        
-        # Asignar el pos_reference si se encontró el sale_id
+
+            # Asignar el pos_reference si se encontró el sale_id
             if sale_id:
                 record.name = sale_id.pos_reference
 
-        # Obtener TerminalId y Ticket del JSON
+            # Obtener TerminalId y Ticket del JSON
             terminal_id = data.get('TerminalId', '')
             commerce_code = data.get('CommerceCode', '')
 
-        # Concatenar TerminalId y Ticket al nombre
+            # Concatenar TerminalId y Ticket al nombre
             record.name = f"{record.name or ''} - Terminal: {terminal_id}, Comercio: {commerce_code}"
-
-
 
     @api.model
     def get_payment_uuid_info(self, uuid):
@@ -74,15 +71,14 @@ class TransactionResponse(models.Model):
         }
 
     def _action_send_transaction_notification(self):
-        self.env['bus.bus']._sendone(
-            self.env.user.partner_id,
-            'transaction_response',
-            {
-                'code': self.code,
-                'uuid': self.response_uuid,
-                'response': self.message
-            },
-        )
+        session_str = self.response_uuid or ''
+        session_id = session_str.split('SESSION')[1]
+        pos_session_sudo = self.env['pos.session'].sudo().browse(int(session_id))
+        self.env['bus.bus']._sendone(pos_session_sudo._get_bus_channel_name(), 'PUSHY_NOTIFICATION_PAYMENT', {
+            'code': self.code,
+            'uuid': self.response_uuid,
+            'response': self.message
+        })
 
     def create(self, vals):
         if self.env['transaction.response'].search([('response_uuid', '=', vals.get('response_uuid'))]):

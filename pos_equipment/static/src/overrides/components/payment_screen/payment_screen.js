@@ -29,7 +29,6 @@ patch(PaymentScreen.prototype, {
     async getPaymentStatus(order) {
         let current_uuid = this.custom_uuid.uuid;
         let payment_equipment = await this.orm.call("transaction.response", "get_payment_uuid_info", [current_uuid]);
-        console.log('payment_equipment', payment_equipment);
         let {code, uuid, response} = payment_equipment;
         if (code === '0') {
             if (uuid === current_uuid) {
@@ -46,19 +45,18 @@ patch(PaymentScreen.prototype, {
         }
     },
     async sendRequestToDevice(order) {
-        console.log("sendRequestToDevice", this);
         let paymentLine = order.selected_paymentline;
         let paymentMethod = paymentLine?.payment_method;
-        console.log("paymentLine", paymentLine);
+        let session_id = "SESSION" + this.currentOrder.session_id + "";
         let info_validate = await this.orm.call("pos.api.config", "pre_validate_params", [paymentMethod?.id, paymentLine.amount]);
-        console.log("info_validate", info_validate);
+        var SELF = this;
         if (!info_validate.success) {
             alert(info_validate.error);
-            return
+            return;
         }
         if (!paymentLine) {
             alert("No haz marcado ningun metodo de pago")
-            return
+            return;
         }
 
 
@@ -78,8 +76,7 @@ patch(PaymentScreen.prototype, {
         }
 
         const handlerTransactionCreation = async ({detail: notifications}) => {
-            debugger
-            console.log("notifications", notifications);
+            // debugger
             for (const {payload, type} of notifications) {
                 if (type === "transaction_response") {
                     let {code, uuid, response} = payload
@@ -107,14 +104,15 @@ patch(PaymentScreen.prototype, {
             this.busService.addEventListener('notification', handlerTransactionCreation);
             timeoutId = setTimeout(() => {
                 this.validationState.block = false
-                // alert('No se logro validar el pago')
+                alert('No se logro validar el pago');
                 this.busService.removeEventListener('notification', handlerTransactionCreation);
+                SELF.env.services.ui.unblock();
             }, equipmentRecord.validation_delay * 1000)
-
+            console.log("loading", this);
+            SELF.env.services.ui.block();
             const {model, token, serial} = equipmentRecord
             const url = `https://api.pushy.me/push?api_key=${token}`;
             const custom_uuid = this.custom_uuid.uuid ? this.custom_uuid.uuid : false
-            console.log("this.custom_uuid", this.custom_uuid);
             const data = {
                 to: serial,
                 time_to_live: info_validate.keep_alive,
@@ -131,7 +129,7 @@ patch(PaymentScreen.prototype, {
                         printVoucher: false,
                         employeeId: order.user_id,
                         saleType: 0,
-                        uuid: custom_uuid
+                        uuid: custom_uuid + session_id
                     },
                 },
                 notification: {
@@ -145,7 +143,7 @@ patch(PaymentScreen.prototype, {
             const headers = {
                 "Content-Type": "application/json",
             };
-            debugger
+            // debugger
             try {
                 const response = await fetch(url, {
                     method: "POST",
@@ -159,7 +157,7 @@ patch(PaymentScreen.prototype, {
                 }
 
                 const responseData = await response.json();
-                debugger
+                // debugger
                 console.log("Response Data OK:", responseData);
 
             } catch (error) {
