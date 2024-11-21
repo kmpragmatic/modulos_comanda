@@ -35,7 +35,7 @@ patch(PaymentScreen.prototype, {
         if (code === '0') {
             return;
         }
-        alert(response);
+        alert('Pago no realizado');
     },
     async sendRequestToDevice(order) {
         let paymentLine = order.selected_paymentline;
@@ -71,7 +71,8 @@ patch(PaymentScreen.prototype, {
         const handlerTransactionCreation = async ({detail: notifications}) => {
             // debugger
             for (const {payload, type} of notifications) {
-                if (type === "transaction_response") {
+                console.log("notifications", notifications);
+                if (type === "PUSHY_NOTIFICATION_PAYMENT") {
                     let {code, uuid, response} = payload
                     if (code == '0') {
                         if (uuid == this.custom_uuid.uuid) {
@@ -101,7 +102,6 @@ patch(PaymentScreen.prototype, {
                 this.busService.removeEventListener('notification', handlerTransactionCreation);
                 SELF.env.services.ui.unblock();
             }, equipmentRecord.validation_delay * 1000)
-            console.log("loading", this);
             SELF.env.services.ui.block();
             const {model, token, serial} = equipmentRecord
             const url = `https://api.pushy.me/push?api_key=${token}`;
