@@ -26,23 +26,16 @@ patch(PaymentScreen.prototype, {
     getCustom_uuid() {
         return this.custom_uuid.uuid;
     },
-    async getPaymentStatus(order) {
-        let current_uuid = this.custom_uuid.uuid;
+
+    async validategetPaymentStatus() {
+        let session_id = "SESSION" + this.currentOrder.session_id + "";
+        let current_uuid = this.custom_uuid.uuid + session_id;
         let payment_equipment = await this.orm.call("transaction.response", "get_payment_uuid_info", [current_uuid]);
         let {code, uuid, response} = payment_equipment;
         if (code === '0') {
-            if (uuid === current_uuid) {
-                await this.validateOrder()
-            } else {
-                alert('Se creo un respuesta de transaccion pero no coincide el UUID: ' + uuid + ' - Orden UUID: ' + current_uuid)
-            }
-
-        } else {
-            if (uuid === current_uuid) {
-                handleValidationOrder()
-                // alert(`No se logro validar el pago, Codigo (${code}). Mensaje: ${response}`)
-            }
+            return;
         }
+        alert(response);
     },
     async sendRequestToDevice(order) {
         let paymentLine = order.selected_paymentline;
@@ -103,8 +96,8 @@ patch(PaymentScreen.prototype, {
             this.validationState.block = true
             this.busService.addEventListener('notification', handlerTransactionCreation);
             timeoutId = setTimeout(() => {
-                this.validationState.block = false
-                alert('No se logro validar el pago');
+                SELF.validategetPaymentStatus(this.SELF);
+                this.validationState.block = false;
                 this.busService.removeEventListener('notification', handlerTransactionCreation);
                 SELF.env.services.ui.unblock();
             }, equipmentRecord.validation_delay * 1000)
