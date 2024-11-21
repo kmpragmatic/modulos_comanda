@@ -76,7 +76,7 @@ class TransactionResponse(models.Model):
         pos_session_sudo = self.env['pos.session'].sudo().browse(int(session_id))
         self.env['bus.bus']._sendone(pos_session_sudo._get_bus_channel_name(), 'PUSHY_NOTIFICATION_PAYMENT', {
             'code': self.code,
-            'uuid': self.response_uuid,
+            'uuid': session_str.split('SESSION')[0],
             'response': self.message
         })
 

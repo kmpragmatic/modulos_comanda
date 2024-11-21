@@ -13,12 +13,14 @@ patch(PaymentScreen.prototype, {
         this.busService = this.env.services.bus_service;
         this.validationState = useState({block: false});
 
+
         const custom_uuid = self ? self.crypto.randomUUID() : false
         this.custom_uuid = useState({uuid: custom_uuid})
 
         onMounted(() => {
             this.currentOrder.set_to_invoice(true)
         });
+
     },
     get validationBlockState() {
         return this.validationState.block
@@ -26,6 +28,7 @@ patch(PaymentScreen.prototype, {
     getCustom_uuid() {
         return this.custom_uuid.uuid;
     },
+
 
     async validategetPaymentStatus() {
         let session_id = "SESSION" + this.currentOrder.session_id + "";
@@ -39,16 +42,22 @@ patch(PaymentScreen.prototype, {
     },
     async sendRequestToDevice(order) {
         let paymentLine = order.selected_paymentline;
+        if (!paymentLine) {
+            alert("No haz marcado ningun metodo de pago");
+            return;
+        }
+        var client = this.currentOrder.partner;
+        console.log(" this.currentOrder", this.currentOrder);
+        if (!client) {
+            alert("Seleccione cliente");
+            return;
+        }
         let paymentMethod = paymentLine?.payment_method;
         let session_id = "SESSION" + this.currentOrder.session_id + "";
         let info_validate = await this.orm.call("pos.api.config", "pre_validate_params", [paymentMethod?.id, paymentLine.amount]);
         var SELF = this;
         if (!info_validate.success) {
             alert(info_validate.error);
-            return;
-        }
-        if (!paymentLine) {
-            alert("No haz marcado ningun metodo de pago")
             return;
         }
 
@@ -58,7 +67,6 @@ patch(PaymentScreen.prototype, {
         if (paymentMethod?.id) {
             let payment_equipment = await this.orm.call("pos.payment.method", "get_equipment_info", [
                 [paymentMethod.id]]);
-            console.log("payment_equipment", payment_equipment);
             equipmentRecord = payment_equipment
         }
         let timeoutId = false
@@ -71,7 +79,7 @@ patch(PaymentScreen.prototype, {
         const handlerTransactionCreation = async ({detail: notifications}) => {
             // debugger
             for (const {payload, type} of notifications) {
-                console.log("notifications", notifications);
+                SELF.env.services.ui.unblock();
                 if (type === "PUSHY_NOTIFICATION_PAYMENT") {
                     let {code, uuid, response} = payload
                     if (code == '0') {
@@ -94,15 +102,17 @@ patch(PaymentScreen.prototype, {
 
 
         if (equipmentRecord.id) {
-            this.validationState.block = true
             this.busService.addEventListener('notification', handlerTransactionCreation);
             timeoutId = setTimeout(() => {
                 SELF.validategetPaymentStatus(this.SELF);
-                this.validationState.block = false;
                 this.busService.removeEventListener('notification', handlerTransactionCreation);
                 SELF.env.services.ui.unblock();
             }, equipmentRecord.validation_delay * 1000)
             SELF.env.services.ui.block();
+            var self = this;
+            this.pos.PushvalidateOrder = async (isForceValidate) => {
+                await self.validateOrder(isForceValidate);
+            };
             const {model, token, serial} = equipmentRecord
             const url = `https://api.pushy.me/push?api_key=${token}`;
             const custom_uuid = this.custom_uuid.uuid ? this.custom_uuid.uuid : false
@@ -238,8 +248,11 @@ patch(PaymentScreen.prototype, {
                     this.pos.selectedOrder.folio_number = responseData.num_folio
                     this.pos.selectedOrder.qr_receipt = atob(responseData.qr)
                 } else {
-                    let message = responseData.response ? responseData.response : responseData['result']['message']
-                    alert(`La peticion para crear la boleta fallo!. Error: ${message}`)
+                    if (responseData) {
+                        let message = responseData.response ? responseData.response : responseData['result']['message']
+                        alert(`La peticion para crear la boleta fallo!. Error: ${message}`)
+                    }
+
                     // throw new Error(`La peticion para crear la boleta fallo!. Error: ${responseData}`);
                 }
                 console.log("Response Request", responseData)
