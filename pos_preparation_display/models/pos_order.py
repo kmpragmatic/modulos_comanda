@@ -8,14 +8,14 @@ from odoo import models, api
 class PosOrder(models.Model):
     _inherit = 'pos.order'
 
-    @api.model
-    def create_from_ui(self, orders, draft=False):
-        orders = super().create_from_ui(orders, draft=draft)
-        order_ids = self.browse([order['id'] for order in orders])
-        for order in order_ids:
-            if order.state == 'paid':
-                self.env['pos_preparation_display.order'].process_order(order.id)
-        return orders
+    # @api.model
+    # def create_from_ui(self, orders, draft=False):
+    #     orders = super().create_from_ui(orders, draft=draft)
+    #     order_ids = self.browse([order['id'] for order in orders])
+    #     for order in order_ids:
+    #         if order.state == 'paid':
+    #             self.env['pos_preparation_display.order'].process_order(order.id)
+    #     return orders
 
     @api.model
     def _get_line_note(self, line):

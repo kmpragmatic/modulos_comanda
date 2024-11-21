@@ -4,7 +4,8 @@ import {patch} from "@web/core/utils/patch";
 import {PaymentScreen} from "@point_of_sale/app/screens/payment_screen/payment_screen";
 import {Order} from "@point_of_sale/app/store/models";
 import {onMounted} from "@odoo/owl";
-import { ConnectionLostError } from "@web/core/network/rpc_service";
+import {ConnectionLostError} from "@web/core/network/rpc_service";
+
 const {useState} = owl;
 
 patch(PaymentScreen.prototype, {
@@ -248,7 +249,12 @@ patch(PaymentScreen.prototype, {
                     this.pos.selectedOrder.folio_number = responseData.num_folio
                     this.pos.selectedOrder.qr_receipt = atob(responseData.qr)
                 } else {
+                    if ('error' in responseData) {
+                        alert(`Error: ${responseData['error']}`);
+                        return;
+                    }
                     if (responseData) {
+                        console.log("responseData['result']", responseData);
                         let message = responseData.response ? responseData.response : responseData['result']['message']
                         alert(`La peticion para crear la boleta fallo!. Error: ${message}`)
                     }
