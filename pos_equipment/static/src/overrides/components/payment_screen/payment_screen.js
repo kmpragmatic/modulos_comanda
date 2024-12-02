@@ -32,7 +32,7 @@ patch(PaymentScreen.prototype, {
 
 
     async validategetPaymentStatus() {
-        let session_id = "SESSION" + this.currentOrder.session_id + "";
+        let session_id = "SESSION" + this.currentOrder.pos_session_id + "";
         let current_uuid = this.custom_uuid.uuid + session_id;
         let payment_equipment = await this.orm.call("transaction.response", "get_payment_uuid_info", [current_uuid]);
         let {code, uuid, response} = payment_equipment;
@@ -54,7 +54,7 @@ patch(PaymentScreen.prototype, {
             return;
         }
         let paymentMethod = paymentLine?.payment_method;
-        let session_id = "SESSION" + this.currentOrder.session_id + "";
+        let session_id = "SESSION" + this.currentOrder.pos_session_id + "";
         let info_validate = await this.orm.call("pos.api.config", "pre_validate_params", [paymentMethod?.id, paymentLine.amount]);
         var SELF = this;
         if (!info_validate.success) {
