@@ -15,8 +15,9 @@ class TransactionResponse(models.Model):
     _name = 'transaction.response'
 
     def unlink(self):
-        if self.code == '0':
-            raise UserError('No puede eliminar un pago validado.')
+        for res in self:
+            if res.code == '0':
+                raise UserError('No puede eliminar un pago validado.')
         return super(TransactionResponse, self).unlink()
 
     name = fields.Char(readonly=True, compute='_compute_name')
@@ -24,7 +25,8 @@ class TransactionResponse(models.Model):
     code = fields.Char()
     message = fields.Char()
     provider = fields.Char()
-    data = fields.Json()
+    # data = fields.Json()
+    data = fields.Text()
     sale_id = fields.Many2one(
         string='Venta vinculada',
         comodel_name='sale.order'
@@ -97,21 +99,21 @@ class TransactionResponse(models.Model):
         #     vals['code'] = json_getnet.get('ResponseCode', '103')
         #     vals['message'] = json_getnet.get('ResponseMessage', '')
 
-        json_getnet = vals.get('data', {})
+        json_getnet = json.loads(json.dumps(vals.get('data')))
         _logger.info("json_getnet")
         _logger.info(json_getnet)
+        vals['name'] = vals.get('response_uuid', '')
         if json_getnet:
-            # json_getnet = json.loads(json_getnet)
-            vals['code'] = json_getnet.get('ResponseCode', '103')
-            vals['message'] = json_getnet.get('ResponseMessage', '')
+            json_getnet = json.loads(json_getnet)
+            vals['code'] = str(json_getnet.get('data').get('ResponseCode', '103'))
+            vals['message'] = json_getnet.get('data').get('ResponseMessage', '')
+            vals['response_uuid'] = str(json_getnet.get('response_uuid', ''))
+            vals['provider'] = str(json_getnet.get('provider', ''))
 
+        vals['data'] = json.dumps(json_getnet)
         if self.env['transaction.response'].search(
                 [('response_uuid', '=', vals.get('response_uuid')), ('code', '=', '0')]):
             raise UserError('El valor UUID ya existe o no puede ser vacio')
         res = super(TransactionResponse, self).create(vals)
-        # json_getnet = json.loads(res.json_txt)
-        res.name = res.response_uuid
-        # res.code = json_getnet.get('ResponseCode', '103')
-        # res.message = json_getnet.get('ResponseMessage', '')
         res._action_send_transaction_notification()
         return res
