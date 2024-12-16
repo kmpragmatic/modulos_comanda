@@ -37,23 +37,24 @@ class PosPaymentMethod(models.Model):
             response = pos_order_id.account_move.do_execute_receipt_invoice()
             _logger.info('execute_request_receipt_create_model-response')
             _logger.info(response)
-            if 'error' in response['result']:
-                return {
-                    "response": response['result']['error'],
-                    "status": "error"
-                }
-            if 'error' not in response and response['result']['status'] == 'success':
-                num_folio = response['result']['data'][0]['folio']
-                num_uuid = response['result']['data'][0]['uuid']
-                qr_code = response['result']['data'][0]['ted']
-                pos_order_id.account_move.set_data_payment_request(num_folio, num_uuid)
-                return {
-                    "num_folio": num_folio,
-                    "qr": qr_code,
-                    "status": "success"
-                }
-            else:
-                return response
+            if 'result' in response:
+                if 'error' in response['result']:
+                    return {
+                        "response": response['result']['error'],
+                        "status": "error"
+                    }
+                if 'error' not in response and response['result']['status'] == 'success':
+                    num_folio = response['result']['data'][0]['folio']
+                    num_uuid = response['result']['data'][0]['uuid']
+                    qr_code = response['result']['data'][0]['ted']
+                    pos_order_id.account_move.set_data_payment_request(num_folio, num_uuid)
+                    return {
+                        "num_folio": num_folio,
+                        "qr": qr_code,
+                        "status": "success"
+                    }
+                else:
+                    return response
         else:
             return {
                 "response": "No se encontro Pos Order",
