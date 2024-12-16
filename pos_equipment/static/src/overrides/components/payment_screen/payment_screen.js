@@ -18,9 +18,9 @@ patch(PaymentScreen.prototype, {
         const custom_uuid = self ? self.crypto.randomUUID() : false
         this.custom_uuid = useState({uuid: custom_uuid})
 
-        onMounted(() => {
-            this.currentOrder.set_to_invoice(true)
-        });
+        // onMounted(() => {
+        //     this.currentOrder.set_to_invoice(true)
+        // });
 
     },
     get validationBlockState() {
@@ -30,10 +30,29 @@ patch(PaymentScreen.prototype, {
         return this.custom_uuid.uuid;
     },
 
+    async deletePaymentLine(cid) {
+        const line = this.paymentLines.find((line) => line.cid === cid);
+        console.log("deletePaymentLine", line);
+        if (line.custom_uuid) {
+            let payamentDetails = await this.validategetPaymentStatusLine(line);
+            console.log("payamentDetails", payamentDetails);
+            if (payamentDetails.code === '0') {
+                alert('No puede eliminar un pago ya acreditado');
+            } else {
+                super.deletePaymentLine(cid);
+            }
+        } else {
+            super.deletePaymentLine(cid);
+        }
 
-    async validategetPaymentStatus() {
-        let session_id = "SESSION" + this.currentOrder.pos_session_id + "";
-        let current_uuid = this.custom_uuid.uuid + session_id;
+    },
+    async validategetPaymentStatusLine(line) {
+        let current_uuid = line.custom_uuid;
+        return await this.orm.call("transaction.response", "get_payment_uuid_info", [current_uuid]);
+    },
+
+    async validategetPaymentStatus(line) {
+        let current_uuid = line.custom_uuid;
         let payment_equipment = await this.orm.call("transaction.response", "get_payment_uuid_info", [current_uuid]);
         let {code, uuid, response} = payment_equipment;
         if (code === '0') {
@@ -81,8 +100,10 @@ patch(PaymentScreen.prototype, {
             // debugger
             for (const {payload, type} of notifications) {
                 SELF.env.services.ui.unblock();
+                console.log("payload", payload);
+                console.log("type", type);
                 if (type === "PUSHY_NOTIFICATION_PAYMENT") {
-                    let {code, uuid, response} = payload
+                    let {code, uuid, response} = payload;
                     if (code == '0') {
                         if (uuid == this.custom_uuid.uuid) {
                             handleValidationOrder()
@@ -100,12 +121,12 @@ patch(PaymentScreen.prototype, {
                 }
             }
         }
-
-
+        const custom_uuid = this.custom_uuid.uuid ? this.custom_uuid.uuid : false
+        paymentLine.set_custom_uuid(custom_uuid + session_id);
         if (equipmentRecord.id) {
             this.busService.addEventListener('notification', handlerTransactionCreation);
             timeoutId = setTimeout(() => {
-                SELF.validategetPaymentStatus(this.SELF);
+                SELF.validategetPaymentStatus(paymentLine);
                 this.busService.removeEventListener('notification', handlerTransactionCreation);
                 SELF.env.services.ui.unblock();
             }, equipmentRecord.validation_delay * 1000)
@@ -116,7 +137,7 @@ patch(PaymentScreen.prototype, {
             };
             const {model, token, serial} = equipmentRecord
             const url = `https://api.pushy.me/push?api_key=${token}`;
-            const custom_uuid = this.custom_uuid.uuid ? this.custom_uuid.uuid : false
+
             const data = {
                 to: serial,
                 time_to_live: info_validate.keep_alive,
@@ -154,7 +175,8 @@ patch(PaymentScreen.prototype, {
                     headers: headers,
                     body: JSON.stringify(data),
                 });
-                alert(`Se envio la validacion de pago. UUID de Orden: ${this.custom_uuid.uuid}`)
+
+                alert(`Se envio la validacion de pago. UUID de Orden: ${custom_uuid + session_id}`)
                 if (!response.ok) {
                     alert(`Error con la validacion del pago. Error: ${(await response.json()).error}`)
                     throw new Error(`HTTP error! status: ${(await response.json()).error}`);
@@ -197,7 +219,6 @@ patch(PaymentScreen.prototype, {
         try {
             // 1. Save order to server.
             syncOrderResult = await this.pos.push_single_order(this.currentOrder);
-            console.log("syncOrderResult", syncOrderResult);
             if (this.custom_uuid.uuid) {
                 await this.orm.write("pos.order", [syncOrderResult[0].id], {custom_order_uuid: this.custom_uuid.uuid});
             }

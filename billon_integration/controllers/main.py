@@ -72,6 +72,8 @@ class BillonApi(http.Controller):
 
         # Enviar el request
         response = requests.post(service_url + boletas_url, json=payload, headers=headers)
+        _logger.info("response")
+        _logger.info(response.text)
         if response.status_code == 200:
             return response.json()
         return {'error': 'Error en la conexion con billonapp'}

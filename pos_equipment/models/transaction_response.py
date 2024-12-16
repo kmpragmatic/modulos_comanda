@@ -14,7 +14,13 @@ from odoo.exceptions import UserError
 class TransactionResponse(models.Model):
     _name = 'transaction.response'
 
+    def unlink(self):
+        if self.code == '0':
+            raise UserError('No puede eliminar un pago validado.')
+        return super(TransactionResponse, self).unlink()
+
     name = fields.Char(readonly=True, compute='_compute_name')
+
     code = fields.Char()
     message = fields.Char()
     provider = fields.Char()
