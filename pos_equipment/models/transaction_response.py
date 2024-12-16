@@ -87,13 +87,31 @@ class TransactionResponse(models.Model):
         })
 
     def create(self, vals):
+        _logger.info("valsvalsvals")
+        _logger.info(vals)
+        # json_getnet = json.loads(vals.get('json_txt','{}'))
+        # _logger.info("json_getnet")
+        # _logger.info(json_getnet)
+        # if json_getnet:
+        #     json_getnet = json.loads(json_getnet)
+        #     vals['code'] = json_getnet.get('ResponseCode', '103')
+        #     vals['message'] = json_getnet.get('ResponseMessage', '')
+
+        json_getnet = vals.get('data', {})
+        _logger.info("json_getnet")
+        _logger.info(json_getnet)
+        if json_getnet:
+            # json_getnet = json.loads(json_getnet)
+            vals['code'] = json_getnet.get('ResponseCode', '103')
+            vals['message'] = json_getnet.get('ResponseMessage', '')
+
         if self.env['transaction.response'].search(
                 [('response_uuid', '=', vals.get('response_uuid')), ('code', '=', '0')]):
             raise UserError('El valor UUID ya existe o no puede ser vacio')
         res = super(TransactionResponse, self).create(vals)
-        json_getnet = json.loads(res.json_txt)
+        # json_getnet = json.loads(res.json_txt)
         res.name = res.response_uuid
-        res.code = json_getnet.get('ResponseCode', '103')
-        res.message = json_getnet.get('ResponseMessage', '')
+        # res.code = json_getnet.get('ResponseCode', '103')
+        # res.message = json_getnet.get('ResponseMessage', '')
         res._action_send_transaction_notification()
         return res

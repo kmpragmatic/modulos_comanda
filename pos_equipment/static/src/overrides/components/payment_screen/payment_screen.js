@@ -115,7 +115,7 @@ patch(PaymentScreen.prototype, {
                     } else {
                         if (uuid == this.custom_uuid.uuid) {
                             handleValidationOrder()
-                            // alert(`No se logro validar el pago, Codigo (${code}). Mensaje: ${response}`)
+                            alert(`No se logro validar el pago, Codigo (${code}). Mensaje: ${response}`);
                         }
                     }
                 }
