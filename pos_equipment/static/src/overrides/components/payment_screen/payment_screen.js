@@ -104,7 +104,7 @@ patch(PaymentScreen.prototype, {
                 console.log("type", type);
                 if (type === "PUSHY_NOTIFICATION_PAYMENT") {
                     let {code, uuid, response} = payload;
-                    if (code == '0') {
+                    if (code === '00') {
                         if (uuid == this.custom_uuid.uuid) {
                             handleValidationOrder()
                             await this.validateOrder()
@@ -262,7 +262,7 @@ patch(PaymentScreen.prototype, {
         }
 
         if (this.currentOrder.is_to_invoice()) {
-            let paymentMethod = this.currentOrder.selected_paymentline?.payment_method
+            let paymentMethod = this.currentOrder.selected_paymentline?.payment_method;
             if (paymentMethod.id) {
                 // let responseData = await this.orm.call("pos.payment.method", "execute_request_receipt_create", [
                 //     [paymentMethod.id], [this.currentOrder.name]]);
