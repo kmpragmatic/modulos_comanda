@@ -87,10 +87,13 @@ class TransactionResponse(models.Model):
         })
 
     def create(self, vals):
-        if self.env['transaction.response'].search([('response_uuid', '=', vals.get('response_uuid'))]):
+        if self.env['transaction.response'].search(
+                [('response_uuid', '=', vals.get('response_uuid')), ('code', '=', '0')]):
             raise UserError('El valor UUID ya existe o no puede ser vacio')
         res = super(TransactionResponse, self).create(vals)
+        json_getnet = json.loads(res.json_txt)
         res.name = res.response_uuid
-        res.code = 0
+        res.code = json_getnet.get('ResponseCode', '103')
+        res.message = json_getnet.get('ResponseMessage', '')
         res._action_send_transaction_notification()
         return res

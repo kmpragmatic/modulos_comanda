@@ -50,15 +50,8 @@ class AccountMove(models.Model):
             'Content-Type': 'application/json',
         }
         cookies = request.httprequest.cookies
-        _logger.info("do_execute_receipt_invoice")
-        _logger.info(url)
-        _logger.info(payload)
-        _logger.info(headers)
-        _logger.info(cookies)
         response = requests.post(url, json=payload, headers=headers, cookies=cookies)
         if response.status_code == 200:
-            _logger.info("response")
-            _logger.info(response.text)
             response_data = response.json()
             return response_data
         else:
