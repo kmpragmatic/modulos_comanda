@@ -197,6 +197,7 @@ patch(PaymentScreen.prototype, {
         try {
             // 1. Save order to server.
             syncOrderResult = await this.pos.push_single_order(this.currentOrder);
+            console.log("syncOrderResult", syncOrderResult);
             if (this.custom_uuid.uuid) {
                 await this.orm.write("pos.order", [syncOrderResult[0].id], {custom_order_uuid: this.custom_uuid.uuid});
             }

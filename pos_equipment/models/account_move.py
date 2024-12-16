@@ -5,7 +5,10 @@ import requests
 from odoo.exceptions import UserError
 
 import logging
+
 _logger = logging.getLogger(__name__)
+
+
 class AccountMove(models.Model):
     _inherit = 'account.move'
 
@@ -32,8 +35,8 @@ class AccountMove(models.Model):
             rec.validate_setting_params()
             response = rec.do_execute_receipt_invoice()
             if 'error' not in response and response['result']['status'] == 'success':
-                num_folio =  response['result']['data'][0]['folio']
-                num_uuid =  response['result']['data'][0]['uuid']
+                num_folio = response['result']['data'][0]['folio']
+                num_uuid = response['result']['data'][0]['uuid']
                 rec.set_data_payment_request(num_folio, num_uuid)
             else:
                 raise UserError(f'{response}')
@@ -54,6 +57,8 @@ class AccountMove(models.Model):
         _logger.info(cookies)
         response = requests.post(url, json=payload, headers=headers, cookies=cookies)
         if response.status_code == 200:
+            _logger.info("response")
+            _logger.info(response.text)
             response_data = response.json()
             return response_data
         else:
