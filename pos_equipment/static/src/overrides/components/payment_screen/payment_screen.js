@@ -101,10 +101,10 @@ patch(PaymentScreen.prototype, {
             for (const {payload, type} of notifications) {
                 SELF.env.services.ui.unblock();
                 console.log("payload", payload);
-                console.log("type", type);
+                console.log("this.custom_uuid.uuid", this.custom_uuid.uuid);
                 if (type === "PUSHY_NOTIFICATION_PAYMENT") {
                     let {code, uuid, response} = payload;
-                    if (code === '00') {
+                    if (code === '0') {
                         if (uuid == this.custom_uuid.uuid) {
                             handleValidationOrder()
                             await this.validateOrder()
