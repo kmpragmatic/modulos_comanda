@@ -105,10 +105,10 @@ class TransactionResponse(models.Model):
         vals['name'] = vals.get('response_uuid', '')
         if json_getnet:
             json_getnet = json.loads(json_getnet)
-            vals['code'] = str(json_getnet.get('data').get('ResponseCode', '103'))
-            vals['message'] = json_getnet.get('data').get('ResponseMessage', '')
-            vals['response_uuid'] = str(json_getnet.get('response_uuid', ''))
-            vals['provider'] = str(json_getnet.get('provider', ''))
+            vals['code'] = str(json_getnet.get('ResponseCode', '103'))
+            vals['message'] = json_getnet.get('ResponseMessage', '')
+            vals['response_uuid'] = str(vals.get('response_uuid', ''))
+            vals['provider'] = str(vals.get('provider', ''))
 
         vals['data'] = json.dumps(json_getnet)
         if self.env['transaction.response'].search(
