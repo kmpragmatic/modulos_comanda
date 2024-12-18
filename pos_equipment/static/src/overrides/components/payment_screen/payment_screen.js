@@ -1,5 +1,5 @@
 /** @odoo-module */
-
+import {ErrorPopup} from "@point_of_sale/app/errors/popups/error_popup";
 import {patch} from "@web/core/utils/patch";
 import {PaymentScreen} from "@point_of_sale/app/screens/payment_screen/payment_screen";
 import {Order} from "@point_of_sale/app/store/models";
@@ -29,10 +29,22 @@ patch(PaymentScreen.prototype, {
     getCustom_uuid() {
         return this.custom_uuid.uuid;
     },
-
+    addNewPaymentLine(paymentMethod) {
+        console.log("this.currentOrder.get_paymentlines();", this.currentOrder.get_paymentlines());
+        const payemnts = this.currentOrder.get_paymentlines().filter(
+            (payment) => payment.payment_method.equipment_id
+        );
+        if (payemnts.length > 0) {
+            this.env.services.popup.add(ErrorPopup, {
+                'title': 'Validación de métodos de pago',
+                'body': 'Solo puede tener un pago con GETNET.',
+            });
+            return;
+        }
+        super.addNewPaymentLine(...arguments);
+    },
     async deletePaymentLine(cid) {
         const line = this.paymentLines.find((line) => line.cid === cid);
-        console.log("deletePaymentLine", line);
         if (line.custom_uuid) {
             let payamentDetails = await this.validategetPaymentStatusLine(line);
             console.log("payamentDetails", payamentDetails);
@@ -67,7 +79,6 @@ patch(PaymentScreen.prototype, {
             return;
         }
         var client = this.currentOrder.partner;
-        console.log(" this.currentOrder", this.currentOrder);
         if (!client) {
             alert("Seleccione cliente");
             return;
@@ -100,8 +111,6 @@ patch(PaymentScreen.prototype, {
             // debugger
             for (const {payload, type} of notifications) {
                 SELF.env.services.ui.unblock();
-                console.log("payload", payload);
-                console.log("this.custom_uuid.uuid", this.custom_uuid.uuid);
                 if (type === "PUSHY_NOTIFICATION_PAYMENT") {
                     let {code, uuid, response} = payload;
                     if (code === '0') {
@@ -168,29 +177,24 @@ patch(PaymentScreen.prototype, {
             const headers = {
                 "Content-Type": "application/json",
             };
-            // debugger
             try {
                 const response = await fetch(url, {
                     method: "POST",
                     headers: headers,
                     body: JSON.stringify(data),
                 });
-
-                alert(`Se envio la validacion de pago. UUID de Orden: ${custom_uuid + session_id}`)
                 if (!response.ok) {
                     alert(`Error con la validacion del pago. Error: ${(await response.json()).error}`)
                     throw new Error(`HTTP error! status: ${(await response.json()).error}`);
                 }
 
                 const responseData = await response.json();
-                // debugger
-                console.log("Response Data OK:", responseData);
 
             } catch (error) {
                 console.error("Error in sending POST request:", error);
             }
         } else {
-            alert('El metodo de pago no tiene configurado equipo POS')
+            alert('El metodo de pago no tiene configurado equipo POS');
         }
 
     },
@@ -226,20 +230,6 @@ patch(PaymentScreen.prototype, {
             if (!syncOrderResult) {
                 return;
             }
-            // 2. Invoice.
-            // if (this.shouldDownloadInvoice() && this.currentOrder.is_to_invoice()) {
-            // 		if (syncOrderResult[0]?.account_move) {
-            // 				await this.report.doAction("account.account_invoices", [
-            // 						syncOrderResult[0].account_move,
-            // 				]);
-            // 		} else {
-            // 				throw {
-            // 						code: 401,
-            // 						message: "Backend Invoice",
-            // 						data: { order: this.currentOrder },
-            // 				};
-            // 		}
-            // }
         } catch (error) {
             if (error instanceof ConnectionLostError) {
                 this.pos.showScreen(this.nextScreen);
@@ -276,7 +266,6 @@ patch(PaymentScreen.prototype, {
                         return;
                     }
                     if (responseData) {
-                        console.log("responseData['result']", responseData);
                         let message = responseData.response ? responseData.response : responseData['result']['message']
                         alert(`La peticion para crear la boleta fallo!. Error: ${message}`)
                     }
