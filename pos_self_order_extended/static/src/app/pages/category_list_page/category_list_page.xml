@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="pos_self_order_extended.CategoryListPage">
+        <div class="d-flex flex-column vh-100 overflow-hidden">
+            <!-- Contenedor de las categorías con scroll vertical -->
+            <div class="flex-grow-1 overflow-auto p-3">
+                <div class="row g-3">
+                    <t t-foreach="Array.from(selfOrder.categoryList)" t-as="category" t-key="category.id">
+                        <!-- Cada tarjeta ocupa 4 columnas (1/4 del ancho en pantallas medianas o más grandes) -->
+                        <div class="col-6 col-sm-6 col-md-4 col-lg-3">
+                            <div class="card h-100" t-on-click="selectCategory.bind(this, category.id)">
+                                <!-- Imagen o placeholder -->
+                                <div class="card-img-top d-flex align-items-center justify-content-center bg-light"
+                                     style="aspect-ratio: 4/3;">
+                                    <img t-if="category.has_image"
+                                         t-attf-src="/pos-self/get-category-image/{{ category.id }}"
+                                         alt="Category Image"
+                                         class="img-fluid"
+                                         style="object-fit: contain;"/>
+                                    <div t-if="!category.has_image"
+                                         class="w-100 h-100 d-flex align-items-center justify-content-center text-muted">
+                                        <span>Sin imagen</span>
+                                    </div>
+                                </div>
+                                <!-- Título alineado al fondo -->
+                                <div class="card-body d-flex flex-column justify-content-end text-center">
+                                    <h6 class="card-title m-0" t-esc="category.name"/>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </div>
+            </div>
+            <OrderWidget action.bind="review"/>
+        </div>
+    </t>
+</templates>

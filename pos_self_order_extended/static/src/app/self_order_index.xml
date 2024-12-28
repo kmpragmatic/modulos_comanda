@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="pos_self_order_extended.selfOrderIndex" t-inherit="pos_self_order.selfOrderIndex" t-inherit-mode="extension">
+        <!-- Apunta al t-set-slot que define ProductListPage -->
+        <xpath expr="//t[@t-set-slot='product_list']" position="replace">
+            <t t-set-slot="product_list"  route="`/pos-self/${selfOrder.pos_config_id}/products`">
+                <CategoryListPage/>
+            </t>
+            <t t-set-slot="product_list_by_category" route="`/pos-self/${selfOrder.pos_config_id}/products/category`" t-slot-scope="url">
+                <ProductListPage  />
+            </t>
+        </xpath>
+    </t>
+</templates>
