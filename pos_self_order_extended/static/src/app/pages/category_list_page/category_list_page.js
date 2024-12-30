@@ -20,7 +20,6 @@ export class CategoryListPage extends Component {
     selectCategory(categoryId) {
         this.selfOrder.selectedCategoryId = categoryId;
         this.router.navigate("product_list_by_category");
-        console.log(`Navegando a la categoría: ${categoryId}`);
     }
 
     review() {

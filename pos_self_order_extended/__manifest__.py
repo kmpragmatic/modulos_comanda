@@ -19,7 +19,6 @@
     "assets": {
         "pos_self_order.assets": [
             'pos_self_order_extended/static/src/app/pages/category_list_page/category_list_page.js',
-            'pos_self_order_extended/static/src/app/pages/landing_page/landing_page.js',
             'pos_self_order_extended/static/src/app/pages/product_list_page/product_list_page.js',
             'pos_self_order_extended/static/src/app/pages/product_list_page/product_list_page.xml',
             'pos_self_order_extended/static/src/app/pages/category_list_page/category_list_page.xml',

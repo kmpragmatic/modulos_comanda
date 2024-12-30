@@ -14,13 +14,3 @@ patch(selfOrderIndex, {
     }
 
 });
-// patch(selfOrderIndex.prototype, {
-//     setup() {
-//         super.setup();
-//         console.log("this.components", this.components);
-//         // Agrega tu funcionalidad personalizada
-//         console.log("selfOrderIndex sobrescrito correctamente");
-//     },
-//
-//
-// });

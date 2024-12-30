@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="pos_self_order_getnet.ProductListPage" t-inherit="pos_self_order.ProductListPage"
+       t-inherit-mode="extension">
+        <xpath expr="//div[hasclass('payment-state-container')]" position="inside">
+            <button>Consultar</button>
+        </xpath>
+    </t>
+</templates>
