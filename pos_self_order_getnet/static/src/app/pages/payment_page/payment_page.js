@@ -72,6 +72,7 @@ patch(PaymentPage.prototype, {
             this.notification.add('Pago realizado', {type: "success"});
             this.selfOrder.updateOrderFromServer(this.order);
             this.selfOrder.finalizeOrder();
+            this.cancelTimeout();
         } else {
             this.notification.add('Pago no realizado', {
                 type: "danger",
@@ -81,7 +82,7 @@ patch(PaymentPage.prototype, {
     },
     executeWithTimeout(delay) {
         var self = this;
-        setInterval(() => self.validateStatusPayment(), 5000);
+        this.timeoutId = setInterval(() => self.validateStatusPayment(), 5000);
         // this.timeoutId = setTimeout(() => {
         //     try {
         //         self.validateStatusPayment();
@@ -92,11 +93,13 @@ patch(PaymentPage.prototype, {
         //     }
         // }, delay);
     },
+
     cancelTimeout() {
-        // if (this.timeoutId) {
-        //     clearTimeout(this.timeoutId);
-        //     this.timeoutId = null;
-        // }
+        if (this.timeoutId) {
+            clearInterval(this.intervalId);
+            // clearTimeout(this.timeoutId);
+            this.timeoutId = null;
+        }
     },
     async getStatusPayment() {
         console.log("this.custom_uuid", this.custom_uuid);
